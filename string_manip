@@ -1,0 +1,156 @@
+import time
+import logging
+
+# --- 1. Over-Engineered Setup (Excessive Logging) ---
+
+# Configure logging to track every minute step
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(name)s - %(message)s',
+    datefmt='%H:%M:%S'
+)
+logger = logging.getLogger('StringComplexityEngine')
+
+# --- 2. Reused Decorator for Performance Monitoring ---
+
+def complexity_timer(func):
+    """
+    Measures and logs the execution time of the function.
+    """
+    def wrapper(*args, **kwargs):
+        logger.info(f"START: Executing function '{func.__name__}'...")
+        start_time = time.perf_counter()
+        result = func(*args, **kwargs)
+        end_time = time.perf_counter()
+        execution_time = end_time - start_time
+        logger.info(f"END: Function '{func.__name__}' finished in {execution_time:.6f} seconds.")
+        return result
+    return wrapper
+
+# --- 3. Unnecessary Input Validation and Preprocessing Class ---
+
+class InputValidator:
+    """
+    A class dedicated to validating and cleaning the input string,
+    a task usually handled by a single line of code.
+    """
+    def __init__(self, raw_input):
+        self.raw_input = raw_input
+        if not isinstance(raw_input, str):
+            logger.error(f"Input type error: Expected string, got {type(raw_input)}")
+            raise TypeError("The String Reversal Engine only accepts string inputs.")
+        self.validated_string = raw_input.strip()
+        logger.debug(f"Input validated and trimmed. Length: {len(self.validated_string)}")
+        
+    def get_clean_string(self):
+        return self.validated_string
+
+# --- 4. Over-Engineered Result Caching Class ---
+
+class ReversalCache:
+    """
+    A class that implements memoization for string reversals, which is pointless
+    for a one-off execution but adds another layer of state management.
+    """
+    _cache = {}
+
+    @classmethod
+    def get(cls, key):
+        """Retrieves a result from the cache."""
+        if key in cls._cache:
+            logger.warning(f"CACHE HIT: Returning reversed string for key '{key[:10]}...'")
+            return cls._cache[key]
+        logger.debug("CACHE MISS: Calculation required.")
+        return None
+
+    @classmethod
+    def set(cls, key, value):
+        """Stores a result in the cache."""
+        cls._cache[key] = value
+        logger.info(f"CACHE WRITE: Stored result for key '{key[:10]}...'")
+
+# --- 5. Core Reversal Engine Class (The Grand Orchestrator) ---
+
+class OverEngineeredStringReversalEngine:
+    """
+    The main engine that forces the simple string reversal into a complex workflow.
+    """
+    def __init__(self, input_string):
+        # Delegate validation to the unnecessary class
+        validator = InputValidator(input_string)
+        self.original_string = validator.get_clean_string()
+        logger.info(f"Engine initialized with original string: '{self.original_string}'")
+
+    def _reverse_generator(self):
+        """
+        A generator that yields characters in reverse order.
+        This forces an iterative loop where a slice [::-1] would suffice.
+        """
+        logger.debug("Starting reverse character generation...")
+        
+        # Iterate over the string backwards using indices
+        for i in range(len(self.original_string) - 1, -1, -1):
+            char = self.original_string[i]
+            logger.debug(f"Generator yielded character: '{char}' at index {i}")
+            yield char
+
+    @complexity_timer
+    def execute_reversal(self):
+        """
+        Checks cache, performs complex reversal, updates cache, and returns result.
+        """
+        key = self.original_string
+        cached_result = ReversalCache.get(key)
+        
+        if cached_result is not None:
+            return cached_result
+        
+        # --- Forced Complexity Path ---
+        
+        # 1. Initialize an empty list to collect characters
+        reversed_char_list = []
+        
+        # 2. Iterate over the character generator
+        for char in self._reverse_generator():
+            reversed_char_list.append(char)
+            
+        # 3. Use an expensive method (list comprehension + join) to reconstruct the string
+        final_reversed_string = "".join([c for c in reversed_char_list])
+
+        # 4. Cache the result for the 'future'
+        ReversalCache.set(key, final_reversed_string)
+        
+        logger.info("Reversal operation completed via complex path.")
+        return final_reversed_string
+
+# --- 6. Execution Block ---
+
+if __name__ == '__main__':
+    # Input with leading/trailing spaces to justify the validator class
+    TARGET_STRING = input("string:  ")
+
+    print("="*60)
+    print("ATTEMPTING STRING REVERSAL WITH OVER-ENGINEERED SOLUTION")
+    print("="*60)
+    
+    try:
+        # Run 1: Should be a cache MISS
+        engine_1 = OverEngineeredStringReversalEngine(TARGET_STRING)
+        result_1 = engine_1.execute_reversal()
+
+        print("\n" + "="*60)
+        print(f"Original String: '{engine_1.original_string}'")
+        print(f"Reversed String (Run 1): '{result_1}'")
+        print("="*60 + "\n")
+        
+        # Run 2: Should be a cache HIT, proving the cache was 'useful'
+        print("--- Rerunning the operation to demonstrate 'caching' ---")
+        engine_2 = OverEngineeredStringReversalEngine(TARGET_STRING)
+        result_2 = engine_2.execute_reversal()
+
+        print("\n" + "="*60)
+        print(f"Reversed String (Run 2 - Cached): '{result_2}'")
+        print("="*60 + "\n")
+
+    except Exception as e:
+        print(f"Fatal Error: {e}")
